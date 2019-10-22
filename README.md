@@ -57,20 +57,14 @@ You should see now that your HPA target is above 50% and some new pods are start
     NAME             REFERENCE                  TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
     hazelcast        StatefulSet/hazelcast      282m/200m   3         5         5          18m
 
-
     $ kubectl get pods
-
-<span class="s2">NAME<span class="Apple-converted-space"></span> READY <span class="Apple-converted-space"></span> STATUS<span class="Apple-converted-space"></span> RESTARTS <span class="Apple-converted-space"></span> AGE</span>
-
-<span class="s2">hazelcast-0 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 30m</span>
-
-<span class="s2">hazelcast-1 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 30m</span>
-
-<span class="s2">hazelcast-2 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 29m</span>
-
-<span class="s2">hazelcast-3 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 14m</span>
-
-<span class="s2">hazelcast-4 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 13m</span> </pre>
+    NAME                                    READY   STATUS        RESTARTS   AGE
+    hazelcast-0                             1/1     Running       0          30m
+    hazelcast-1                             1/1     Running       0          30m
+    hazelcast-2                             1/1     Running       0          29m
+    hazelcast-3                             1/1     Running       0          14m
+    hazelcast-4                             1/1     Running       0          13m
+    hazelcast-mancenter-0                   1/1     Running       1          30m
 
 ## Cleanup
 
