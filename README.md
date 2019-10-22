@@ -86,7 +86,7 @@ In the previous section, we have explained how to use Resource Metrics to autosc
 
 ## Install Prometheus Adapter
 
-Create a custom hazelcast-values.yaml
+Let's have a look at the contents of `prometheus-adapter-values.yaml`
 
     rules:
       default: true
@@ -116,7 +116,7 @@ This configuration will be passed to the helm chart while deploying Prometheus A
 
 This example uses "max" function while creating "metricsQuery" but you can basically use some other [aggregation operator](https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators) like avg in your own configuration. If you saved the file above, you can create a prometheus adapter based on that configuration.
 
-    $ helm install --name prometheus-adapter stable/prometheus-adapter -f hazelcast-values.yaml --namespace monitoring
+    $ helm install --name prometheus-adapter stable/prometheus-adapter -f prometheus-adapter-values.yaml --namespace monitoring
 
 ## Install Metrics Enabled Hazelcast Cluster
 
@@ -152,7 +152,9 @@ The most important part in this output is "value": "136m". The suffix "m" means
 
 ## Horizontal Pod AutoScaler (Custom Metrics)
 
-As we have configured Hazelcast,Prometheus and Prometheus Adapter, let's now create a Horizontal Pod AutoScaler based on **on_heap_ratio** metric. Following HPA configuration tells HPA if  targetValue > 200m then scale up my cluster. 200m as we explained above means actually 20%. You can change that number based on your own use case. Save following HPA into a file named heap-based-hpa.yaml
+As we have configured Hazelcast,Prometheus and Prometheus Adapter, let's now create a Horizontal Pod AutoScaler based on **on_heap_ratio** metric. `hazelcast-custom-metrics-hpa.yaml` tells HPA if  targetValue > 200m then scale up my cluster. 200m as we explained above means actually 20%. You can change that number based on your own use case. 
+
+See the content of `hazelcast-custom-metrics-hpa.yaml` file.
 
     apiVersion: autoscaling/v2beta1
     kind: HorizontalPodAutoscaler
@@ -176,7 +178,7 @@ As we have configured Hazelcast,Prometheus and Prometheus Adapter, let's now cre
 
 Apply HPA to your cluster with kubectl
 
-    $ kubectl apply -f heap-based-hpa.yaml
+    $ kubectl apply -f hazelcast-custom-metrics-hpa.yaml
     horizontalpodautoscaler.autoscaling/heap-based-hpa created
 
 ## Generate some Memory Load for HPA
