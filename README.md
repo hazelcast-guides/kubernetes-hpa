@@ -40,23 +40,25 @@ This will install 3 member Hazelcast Cluster with Management Center.
 As explained before, Metrics Server is the provider for Metrics API and this API is used by HPA for Resource Metrics based autoscaling options. Before moving forward, verify that Metrics Server is properly installed and in the list of API Registration.
 
     $kubectl get apiservices.apiregistration.k8s.io | grep metrics-server
-
-<span class="s2">v1beta1.metrics.k8s.io kube-system/metrics-server <span class="Apple-converted-space"></span> True<span class="Apple-converted-space"></span> 16m</span></pre>
+    v1beta1.metrics.k8s.io                 kube-system/metrics-server      True        16m
 
 Let's create an HPA based on CPU usage.
 
-<pre>$ kubectl autoscale statefulset hazelcast --cpu-percent=50 --min=3 --max=10
-<span class="s1">horizontalpodautoscaler.autoscaling/hazelcast autoscaled</span></pre>
+    $ kubectl autoscale statefulset hazelcast --cpu-percent=50 --min=3 --max=10
+    horizontalpodautoscaler.autoscaling/hazelcast autoscaled
 
 This HPA will periodically check Hazelcast StatefulSet CPU usage and will decide number of running pods between 3 to 10 based on some [calculation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details). Simplest way to put some cpu load on Hazelcast Pod is executing [yes tool](https://en.wikipedia.org/wiki/Yes_(Unix)). This is just to show how HPA is triggered to scale up Hazelcast Cluster by printing yes in one of Hazelcast Pods. You should use a proper load testing tool to test HPA in your Hazelcast Cluster. Before generating CPU load, you can open 2 new terminals to watch HPA target values and number of hazelcast pods via **watch kubernetes get pods** and **watch kubernetes get hpa **commands. Let's move on and execute following command for 5-10 seconds and terminate via **Ctrl + C**
 
-<pre class="p1"><span class="s1">kubectl exec hazelcast-0 yes > /dev/null</span></pre>
+    $ kubectl exec hazelcast-0 yes > /dev/null
 
 You should see now that your HPA target is above 50% and some new pods are started. As initial hazelcast cluster was 3 member cluster, **hazelcast-3** and above are new pods created by HPA.
 
-<pre class="p1"><span class="s1">**$** </span><span class="s2">kubectl get hpa</span> <span class="s2">NAME<span class="Apple-converted-space"></span> REFERENCE <span class="Apple-converted-space"></span> TARGETS <span class="Apple-converted-space"></span> MINPODS <span class="Apple-converted-space"></span> MAXPODS <span class="Apple-converted-space"></span> REPLICAS <span class="Apple-converted-space"></span> AGE</span> <span class="s2">hazelcast <span class="Apple-converted-space"></span> StatefulSet/hazelcast <span class="Apple-converted-space"></span> 94%/50% <span class="Apple-converted-space"></span> 3 <span class="Apple-converted-space"></span> 5 <span class="Apple-converted-space"></span> 5<span class="Apple-converted-space"></span> 18m</span></pre>
+    $ kubectl get hpa
+    NAME             REFERENCE                  TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+    hazelcast        StatefulSet/hazelcast      282m/200m   3         5         5          18m
 
-<pre class="p1"><span class="s1">**$** </span><span class="s2">kubectl get pods</span>
+
+    $ kubectl get pods
 
 <span class="s2">NAME<span class="Apple-converted-space"></span> READY <span class="Apple-converted-space"></span> STATUS<span class="Apple-converted-space"></span> RESTARTS <span class="Apple-converted-space"></span> AGE</span>
 
@@ -74,10 +76,11 @@ You should see now that your HPA target is above 50% and some new pods are start
 
 As you successfully managed to use Resource Metrics with Hazelcast, we can clean up resources used up to that point.
 
-<pre class="p1"><span class="s1">$ helm delete hazelcast --purge</span> <span class="s1">release "hazelcast" deleted</span>
+    $ helm delete hazelcast --purge
+    release "hazelcast" deleted
 
-$<span class="s1">kubectl delete hpa hazelcast</span> <span class="s1">horizontalpodautoscaler.autoscaling "hazelcast" deleted</span>
-</pre>
+    $kubectl delete hpa hazelcast
+    horizontalpodautoscaler.autoscaling "hazelcast" deleted
 
 # Custom Metrics
 
@@ -85,30 +88,30 @@ In the previous section, we have explained how to use Resource Metrics to autosc
 
 ## Install Prometheus
 
-<pre>helm install --name prometheus stable/prometheus --namespace monitoring</pre>
+    $ helm install --name prometheus stable/prometheus --namespace monitoring
 
 ## Install Prometheus Adapter
 
 Create a custom hazelcast-values.yaml
 
-<pre>rules:
-  default: true
-  custom:
-  - seriesQuery: '{__name__=~"jvm_memory_bytes_(used|max)",area="heap",kubernetes_name=~"hazelcast.*"}'
-    seriesFilters:
-    - is: ^jvm_memory_bytes_(used|max)$
-    resources: 
-      overrides:
-        kubernetes_pod_name: {resource: "pod"}
-        kubernetes_namespace: {resource: "namespace"}
-        kubernetes_name: {resource: "service"}
-    name:
-      matches: ^jvm_memory_bytes_(used|max)$
-      as: "on_heap_ratio"
-    metricsQuery: max(jvm_memory_bytes_used{<<.LabelMatchers>>}/jvm_memory_bytes_max{<<.LabelMatchers>>}) by (<<.GroupBy>>)
-prometheus:
-  url: http://prometheus-server # make sure the url is correct
-  port: 80</pre>
+    rules:
+      default: true
+      custom:
+      - seriesQuery: '{__name__=~"jvm_memory_bytes_(used|max)",area="heap",kubernetes_name=~"hazelcast.*"}'
+        seriesFilters:
+        - is: ^jvm_memory_bytes_(used|max)$
+        resources: 
+          overrides:
+            kubernetes_pod_name: {resource: "pod"}
+            kubernetes_namespace: {resource: "namespace"}
+            kubernetes_name: {resource: "service"}
+        name:
+          matches: ^jvm_memory_bytes_(used|max)$
+          as: "on_heap_ratio"
+        metricsQuery: max(jvm_memory_bytes_used{<<.LabelMatchers>>}/jvm_memory_bytes_max{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+    prometheus:
+      url: http://prometheus-server # make sure the url is correct
+      port: 80</pre>
 
 This configuration will be passed to the helm chart while deploying Prometheus Adapter but let's just go through each part before doing that. The config basically tells Prometheus Adapter:
 
@@ -119,39 +122,37 @@ This configuration will be passed to the helm chart while deploying Prometheus A
 
 This example uses "max" function while creating "metricsQuery" but you can basically use some other [aggregation operator](https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators) like avg in your own configuration. If you saved the file above, you can create a prometheus adapter based on that configuration.
 
-<pre>helm install --name prometheus-adapter stable/prometheus-adapter -f hazelcast-values.yaml --namespace monitoring</pre>
+    $ helm install --name prometheus-adapter stable/prometheus-adapter -f hazelcast-values.yaml --namespace monitoring
 
 ## Install Metrics Enabled Hazelcast Cluster
 
 Let's install a new 3 members hazelcast cluster with metrics enabled. Each hazelcast member container in this new deployment will expose their own metrics data under **/metrics** endpoint. This endpoint exposes metrics in Prometheus format because each hazelcast container is started with [Prometheus JMX Exporter](https://github.com/prometheus/jmx_exporter). This is a feature provided by [Hazelcast Docker](https://github.com/hazelcast/hazelcast-docker) Image. We also set **resources.limits.memory=512Mi **which sets each hazelcast member JVM max heap size to 128Mi. JVM by default grabs 25% of available memory as max heap size.
 
-<pre>helm install --name hazelcast-metrics-enabled stable/hazelcast --set metrics.enabled=true,resources.limits.memory=512Mi</pre>
+    $helm install --name hazelcast-metrics-enabled stable/hazelcast --set metrics.enabled=true,resources.limits.memory=512Mi
 
 Verify that the custom rule we provided to Prometheus Adapter is functioning properly. If you see <span class="s1">"Error from server (NotFound): the server could not find the metric on_heap_ratio for services", you might need to wait some time because Prometheus might not have started scraping Hazelcast specific metrics. </span>
 
-<pre>$ kubectl get --raw "/apis/custom.metrics.k8s.io/v1beta1/namespaces/default/services/*/on_heap_ratio" |jq .
-{
-  "kind": "MetricValueList",
-  "apiVersion": "custom.metrics.k8s.io/v1beta1",
-  "metadata": {
-    "selfLink": "/apis/custom.metrics.k8s.io/v1beta1/namespaces/default/services/%2A/on_heap_ratio"
-  },
-  "items": [
-    {
-      "describedObject": {
-        "kind": "Service",
-        "namespace": "default",
-        "name": "hazelcast-metrics-enabled-metrics",
-        "apiVersion": "/v1"
-      },
-      "metricName": "on_heap_ratio",
-      "timestamp": "2019-10-02T15:09:04Z",
-      "value": "136m"
-    }
-  ]
-}
-
-</pre>
+    $ kubectl get --raw "/apis/custom.metrics.k8s.io/v1beta1/namespaces/default/services/*/on_heap_ratio" |jq .
+    {
+      "kind": "MetricValueList",
+      "apiVersion": "custom.metrics.k8s.io/v1beta1",
+      "metadata": {
+        "selfLink": "/apis/custom.metrics.k8s.io/v1beta1/namespaces/default/services/%2A/on_heap_ratio"
+      },
+      "items": [
+        {
+          "describedObject": {
+            "kind": "Service",
+            "namespace": "default",
+            "name": "hazelcast-metrics-enabled-metrics",
+            "apiVersion": "/v1"
+          },
+          "metricName": "on_heap_ratio",
+          "timestamp": "2019-10-02T15:09:04Z",
+          "value": "136m"
+        }
+      ]
+    }
 
 The most important part in this output is "value": "136m". The suffix "m" means milli-unit and it is [kubernetes-style quatities](//github.com/DirectXMan12/k8s-prometheus-adapter/blob/master/docs/walkthrough.md#quantity-values) to define metric values. Milli-unit is equivalent to 1000ths of a unit so 136m is actually referring to 3.3% which means **max** value of **on_heap_ratio** seen so far.
 
@@ -159,69 +160,81 @@ The most important part in this output is "value": "136m". The suffix "m" means
 
 As we have configured Hazelcast,Prometheus and Prometheus Adapter, let's now create a Horizontal Pod AutoScaler based on **on_heap_ratio** metric. Following HPA configuration tells HPA if  targetValue > 200m then scale up my cluster. 200m as we explained above means actually 20%. You can change that number based on your own use case. Save following HPA into a file named heap-based-hpa.yaml
 
-<pre>apiVersion: autoscaling/v2beta1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: heap-based-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: StatefulSet
-    name: hazelcast-metrics-enabled
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Object
-      object:
-        target:
-          kind: Service
-          name: hazelcast-metrics-enabled-metrics
-        metricName: on_heap_ratio
-        targetValue: 200m</pre>
+    apiVersion: autoscaling/v2beta1
+    kind: HorizontalPodAutoscaler
+    metadata:
+      name: heap-based-hpa
+    spec:
+      scaleTargetRef:
+        apiVersion: apps/v1
+        kind: StatefulSet
+        name: hazelcast-metrics-enabled
+      minReplicas: 3
+      maxReplicas: 10
+      metrics:
+        - type: Object
+          object:
+            target:
+              kind: Service
+              name: hazelcast-metrics-enabled-metrics
+            metricName: on_heap_ratio
+            targetValue: 200m
 
 Apply HPA to your cluster with kubectl
 
-<pre>$ kubectl apply -f heap-based-hpa.yaml</pre>
-
-<pre>horizontalpodautoscaler.autoscaling/heap-based-hpa created</pre>
+    $ kubectl apply -f heap-based-hpa.yaml
+    horizontalpodautoscaler.autoscaling/heap-based-hpa created
 
 ## Generate some Memory Load for HPA
 
 Let's just have a look **TARGETS** part of HPA output.
 
-<pre class="line number1 index0 alt2">$kubectl get hpa heap-based-hpa
-NAME             REFERENCE                               TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
-heap-based-hpa   StatefulSet/hazelcast-metrics-enabled   136m/200m   3         10        3          94s</pre>
+    $ kubectl get hpa heap-based-hpa
+    NAME             REFERENCE                               TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
+    heap-based-hpa   StatefulSet/hazelcast-metrics-enabled   136m/200m   3         10        3          94s
 
 As we see, current HPA Target is 136m/200m so if we increase memory usage just 10%  by adding 10MB into the cluster, HPA should trigger a scale up event. I will use Hazelcast Java Client to put some data into cluster but you can use your own language to implement the same functionality. You can see all Hazelcast supported programming languages [here](https://hazelcast.org/clients-languages/). Let's first port forward from our local machine to be able to connect remote k8s hazelcast member pod.
 
-<pre>kubectl port-forward hazelcast-metrics-enabled-0 5701</pre>
+    $ kubectl port-forward hazelcast-metrics-enabled-0 5701
 
-Execute following code snippet to put data into Hazelcast Cluster. // start Hazelcast Client with smartRouting enabled ClientConfig cfg = new ClientConfig(); cfg.getNetworkConfig().setSmartRouting(false); HazelcastInstance client = HazelcastClient.newHazelcastClient(cfg); // create Hazelcast Distributed Map "numbers" IMap<Object, Object> numbers = client.getMap("numbers"); // put 10000*1K = 10M to "numbers" int i=0; while (i++ < 10000) numbers.put(i,new byte[1024]); // check the size of "numbers" System.out.println("size:"+numbers.size()); //clean up client.shutdown(); When you start putting data into your hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
+Execute following code snippet to put data into Hazelcast Cluster. 
 
-<pre class="p1"><span class="s1">**$** </span><span class="s2">kubectl get hpa heap-based-hpa</span> <span class="s2">NAME <span class="Apple-converted-space"></span> REFERENCE <span class="Apple-converted-space"></span> TARGETS <span class="Apple-converted-space"></span> MINPODS <span class="Apple-converted-space"></span> MAXPODS <span class="Apple-converted-space"></span> REPLICAS <span class="Apple-converted-space"></span> AGE</span> <span class="s2">heap-based-hpa <span class="Apple-converted-space"></span> StatefulSet/hazelcast-metrics-enabled <span class="Apple-converted-space"></span> 247m/200m <span class="Apple-converted-space"></span> 3 <span class="Apple-converted-space"></span> 10<span class="Apple-converted-space"></span> 4<span class="Apple-converted-space"></span> 9m9s</span></pre>
+        // start Hazelcast Client with smartRouting enabled
+        ClientConfig cfg = new ClientConfig();
+        cfg.getNetworkConfig().setSmartRouting(false);
+        HazelcastInstance client = HazelcastClient.newHazelcastClient(cfg);
 
-<pre class="p1"><span class="s1">**$** </span><span class="s2">kubectl get pods</span>
+        // create Hazelcast Distributed Map "numbers"
+        IMap<Object, Object> numbers = client.getMap("numbers");
 
-<span class="s2">NAME<span class="Apple-converted-space"></span> READY <span class="Apple-converted-space"></span> STATUS<span class="Apple-converted-space"></span> RESTARTS <span class="Apple-converted-space"></span> AGE</span>
+        // put 10000*1K = 10M to "numbers"
+        int i=0;
+        while (i++ < 10000)
+        numbers.put(i,new byte[1024]);
 
-<span class="s2">hazelcast-metrics-enabled-0 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 19m</span>
+        // check the size of "numbers"
+        System.out.println("size:"+numbers.size());
 
-<span class="s2">hazelcast-metrics-enabled-1 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 18m</span>
+        //clean up
+        client.shutdown();
 
-<span class="s2">hazelcast-metrics-enabled-2 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 18m</span>
+When you start putting data into your hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
 
-<span class="s2">hazelcast-metrics-enabled-3 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 2m55s</span>
+    $ kubectl get hpa
+    NAME             REFERENCE                               TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+    heap-based-hpa   StatefulSet/hazelcast-metrics-enabled   247m/200m   3         10        4         9m9s
 
-<span class="s2">hazelcast-metrics-enabled-4 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 2m9s</span>
-
-<span class="s2">hazelcast-metrics-enabled-5 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 83s</span>
-
-<span class="s2">hazelcast-metrics-enabled-6 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 47s</span>
-
-<span class="s2">hazelcast-metrics-enabled-7 <span class="Apple-converted-space"></span> 0/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 11s</span>
-
-<span class="s2">hazelcast-metrics-enabled-mancenter-0 <span class="Apple-converted-space"></span> 1/1 <span class="Apple-converted-space"></span> Running <span class="Apple-converted-space"></span> 0<span class="Apple-converted-space"></span> 19m</span></pre>
+    $ kubectl get pods
+    NAME                                    READY   STATUS    RESTARTS   AGE
+    hazelcast-metrics-enabled-0             1/1     Running   0          19m
+    hazelcast-metrics-enabled-1             1/1     Running   0          18m
+    hazelcast-metrics-enabled-2             1/1     Running   0          18m
+    hazelcast-metrics-enabled-3             1/1     Running   0          2m55s
+    hazelcast-metrics-enabled-4             1/1     Running   0          2m9s
+    hazelcast-metrics-enabled-5             1/1     Running   0          83s
+    hazelcast-metrics-enabled-6             1/1     Running   0          47s
+    hazelcast-metrics-enabled-7             1/1     Running   0          11s
+    hazelcast-metrics-enabled-mancenter-0   1/1     Running   0          19m
 
 # Conclusion
 
@@ -231,12 +244,8 @@ Autoscaling is an important feature for enterprises to save money and to cope wi
 
 This is the list of software versions used in this blog post.
 
-<pre class="p1"><span class="s1">**$** </span><span class="s2">helm ls</span>
-
-<span class="s2">NAME <span class="Apple-converted-space"></span> REVISION UPDATED <span class="Apple-converted-space"></span> STATUS<span class="Apple-converted-space"></span> CHART <span class="Apple-converted-space"></span> APP VERSION NAMESPACE</span> 
-
-<span class="s2">hazelcast-metrics-enabled 1 <span class="Apple-converted-space"></span> Mon Oct 21 15:25:06 2019 DEPLOYED hazelcast-1.9.2 <span class="Apple-converted-space"></span> 3.12.2 <span class="Apple-converted-space"></span> default<span class="Apple-converted-space">   </span></span>
-
-<span class="s2">prometheus <span class="Apple-converted-space"></span> 1 <span class="Apple-converted-space"></span> Mon Oct 21 15:21:54 2019 DEPLOYED prometheus-9.1.1<span class="Apple-converted-space"></span> 2.11.1 <span class="Apple-converted-space"></span> monitoring</span>
-
-<span class="s2">prometheus-adapter <span class="Apple-converted-space"></span> 1 <span class="Apple-converted-space"></span> Mon Oct 21 15:24:03 2019 DEPLOYED prometheus-adapter-1.3.0 v0.5.0 <span class="Apple-converted-space"></span> monitoring</span></pre>
+    $ helm ls
+    NAME                     	REVISION	UPDATED                 	STATUS  	CHART                   	APP VERSION	NAMESPACE 
+    hazelcast-metrics-enabled	1       	Mon Oct 21 15:25:06 2019	DEPLOYED	hazelcast-1.9.2         	3.12.2     	default   
+    prometheus               	1       	Mon Oct 21 15:21:54 2019	DEPLOYED	prometheus-9.1.1        	2.11.1     	monitoring
+    prometheus-adapter       	1       	Mon Oct 21 15:24:03 2019	DEPLOYED	prometheus-adapter-1.3.0	v0.5.0     	monitoring
