@@ -6,7 +6,7 @@
 
 = Kubernetes HPA for Hazelcast cluster
 
-This guide will show you how to set up Hazelcast with [Kubernetes Horizontal Pod Autoscaler(HPA)](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
+This guide will show you how to set up Hazelcast with https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Kubernetes Horizontal Pod Autoscaler (HPA)].
 
 include::{templates-url}/link-to-repo.adoc[]
 
