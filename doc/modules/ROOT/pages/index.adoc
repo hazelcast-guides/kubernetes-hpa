@@ -6,7 +6,7 @@
 
 = Kubernetes HPA for Hazelcast cluster
 
-Cloud technologies give you on-demand options so that you can create compute, disk or network resources based on your requirements. When your demand changes, you update your infrastructure by releasing some resources or adding more. That is actually named Manual Scaling based on human intervention. Kubernetes is no different in this particular use case. If you create a service on top of Kubernetes, and you see unexpected popularity than you planned for, you need to scale out your number of Pods to match the traffic coming to your application. Kubernetes has an automated solution for this problem. https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Horizontal Pod Autoscaler (HPA)] automatically scales the number of pods in Kubernetes based on your metrics selection. You have two options to choose.
+Cloud technologies give you on-demand options so that you can create compute, disk or network resources based on your requirements. When your demand changes, you update your infrastructure by releasing some resources or adding more. That is actually named Manual Scaling based on human intervention. Kubernetes is no different in this particular use case. If you create a service on top of Kubernetes, and you see unexpected popularity than you planned for, you need to scale out your number of pods to match the traffic coming to your application. Kubernetes has an automated solution for this problem. https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Horizontal Pod Autoscaler (HPA)] automatically scales the number of pods in Kubernetes based on your metrics selection. You have two options to choose.
 
 * https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics]
 * https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#full-metrics-pipeline[Custom Metrics]
@@ -17,7 +17,7 @@ include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
 
-In this guide you will setup deploy Hazelcast to Kubernetes cluster and set up HPA using Resource Metrics and Custom Metrics.
+In this guide you will deploy Hazelcast to Kubernetes cluster and set up HPA using Resource Metrics and Custom Metrics.
 
 == Prerequisites
 
@@ -61,7 +61,7 @@ For more details on installing and using Hazelcast Helm Chart you can see this h
 
 == Horizontal Pod AutoScaler (Resource Metrics)
 
-As you can read the details from official Kubernetes documentation, https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics] provide CPU and Memory based metrics for Pods and Nodes in your Kubernetes Cluster. Those metrics are exposed via the metrics.k8s.io API and one implementation of that API is Metrics Server.
+As you can read the details from official Kubernetes documentation, https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics] provide CPU and Memory based metrics for pods and nodes in your Kubernetes Cluster. Those metrics are exposed via the metrics.k8s.io API and one implementation of that API is Metrics Server.
 
 Before moving forward, verify that Metrics Server is properly installed and visible in the list of API Registration.
 
@@ -77,7 +77,7 @@ Let's create an HPA based on CPU usage.
 ----
 $ kubectl autoscale statefulset hazelcast --cpu-percent=50 --min=3 --max=10
 ----
-This HPA will periodically check Hazelcast StatefulSet CPU usage and will decide the number of running pods between 3 and 10, based on some https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details[calculations]. The simplest way to put some cpu load on Hazelcast Pod is to execute https://en.wikipedia.org/wiki/Yes_(Unix)[yes tool]. This is just to show how HPA is triggered to scale up Hazelcast Cluster by printing yes in one of Hazelcast Pods. You should use a proper load testing tool to test HPA in your Hazelcast Cluster. Before generating CPU load, you can open 2 new terminals to watch HPA target values and number of hazelcast pods via watch `kubectl get pods` and watch `kubectl get hpa` commands. Let's move on and execute the following command for 5-10 seconds and terminate via *Ctrl + C*.
+This HPA will periodically check Hazelcast StatefulSet CPU usage and will decide the number of running pods between 3 and 10, based on some https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details[calculations]. The simplest way to put some cpu load on Hazelcast Pod is to execute https://en.wikipedia.org/wiki/Yes_(Unix)[yes tool]. This is just to show how HPA is triggered to scale up Hazelcast Cluster by printing yes in one of Hazelcast pods. You should use a proper load testing tool to test HPA in your Hazelcast Cluster. Before generating CPU load, you can open 2 new terminals to watch HPA target values and number of Hazelcast pods via watch `kubectl get pods` and watch `kubectl get hpa` commands. Let's move on and execute the following command for 5-10 seconds and terminate via *Ctrl + C*.
 
 Now that your HPA target is above 50%, you should see some new pods have been created. As the initial Hazelcast cluster was 3 members cluster, `hazelcast-3` and above are the new pods created by HPA.
 
@@ -261,7 +261,7 @@ heap-based-hpa   StatefulSet/hazelcast   180m/200m   3         10        10     
 
 As we see, current HPA Target is 180m/200m so if we increase memory usage just 10%  by adding 10MB into the cluster, HPA should trigger a scale up event. I will use Hazelcast Java Client to put some data into cluster, but you can use your own language to implement the same functionality. You can see all Hazelcast supported programming languages https://hazelcast.org/imdg/clients-languages/[here].
 
-Let's first port forward from our local machine to be able to connect remote k8s hazelcast member pod.
+Let's first port forward from our local machine to be able to connect remote k8s Hazelcast member pod.
 
 [source, shell]
 ----
@@ -272,10 +272,23 @@ Execute following code snippet to put data into Hazelcast Cluster.
 
 [source, java]
 ----
- // start Hazelcast Client with smartRouting enabled
- ClientConfig cfg = new ClientConfig();
- cfg.getNetworkConfig().setSmartRouting(false);
- HazelcastInstance client = HazelcastClient.newHazelcastClient(cfg);
+ // start Hazelcast Client with smartRouting disabled
+ClientConfig cfg = new ClientConfig();
+cfg.getNetworkConfig().setSmartRouting(false);
+HazelcastInstance client = HazelcastClient.newHazelcastClient(cfg);
+// create Hazelcast Distributed Map "numbers"
+IMap<Object, Object> numbers = client.getMap("numbers");
+
+// put 10000*1K = 10M to "numbers"
+int i=0;
+while (i++ < 10000)
+    numbers.put(i,new byte[1024]);
+
+// check the size of "numbers"
+System.out.println("size:"+numbers.size());
+
+//clean up
+client.shutdown();
 ----
 
 [NOTE]
