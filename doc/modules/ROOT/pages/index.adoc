@@ -6,10 +6,7 @@
 
 = Kubernetes HPA for Hazelcast cluster
 
-Cloud technologies give you on-demand options so that you can create compute, disk or network resources based on your requirements. When your demand changes, you update your infrastructure by releasing some resources or adding more. That is actually named Manual Scaling based on human intervention. Kubernetes is no different in this particular use case. If you create a service on top of Kubernetes, and you see unexpected popularity than you planned for, you need to scale out your number of pods to match the traffic coming to your application. Kubernetes has an automated solution for this problem. https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Horizontal Pod Autoscaler (HPA)] automatically scales the number of pods in Kubernetes based on your metrics selection. You have two options to choose.
-
-* https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics]
-* https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#full-metrics-pipeline[Custom Metrics]
+This guide will show you how to set up Hazelcast with [Kubernetes Horizontal Pod Autoscaler(HPA)](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
 
 Let's dig into each of them with a supporting example using Hazelcast
 
@@ -17,7 +14,7 @@ include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
 
-In this guide you will deploy Hazelcast to Kubernetes cluster and set up HPA using Resource Metrics and Custom Metrics.
+In this guide you will deploy Hazelcast to Kubernetes cluster and set up HPA using https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics] and https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#full-metrics-pipeline[Custom Metrics].
 
 == Prerequisites
 
