@@ -8,8 +8,6 @@
 
 This guide will show you how to set up Hazelcast with [Kubernetes Horizontal Pod Autoscaler(HPA)](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
 
-Let's dig into each of them with a supporting example using Hazelcast
-
 include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
