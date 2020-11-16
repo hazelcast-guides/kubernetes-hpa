@@ -36,7 +36,7 @@ $ helm repo update
 $ helm install hazelcast hazelcast/hazelcast
 ----
 
-Not you can verify that Hazelcast cluster is successfully deployed:
+Now you can verify that Hazelcast cluster is successfully deployed:
 
 [source, shell]
 ----
@@ -57,13 +57,13 @@ statefulset.apps/hazelcast             3/3     7m35s
 statefulset.apps/hazelcast-mancenter   1/1     7m35s
 ----
 
-For more details on installing using Hazelcast Helm Chart follow the https://hazelcast.com/blog/hazelcast-helm-chart/[link].
+For more details on installing and using Hazelcast Helm Chart you can see this https://hazelcast.com/blog/hazelcast-helm-chart/[blogpost].
 
 == Horizontal Pod AutoScaler (Resource Metrics)
 
 As you can read the details from official Kubernetes documentation, https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics] provide CPU and Memory based metrics for Pods and Nodes in your Kubernetes Cluster. Those metrics are exposed via the metrics.k8s.io API and one implementation of that API is Metrics Server.
 
-Before moving forward, verify that Metrics Server is properly installed and in the list of API Registration.
+Before moving forward, verify that Metrics Server is properly installed and visible in the list of API Registration.
 
 [source, shell]
 ----
@@ -77,9 +77,9 @@ Let's create an HPA based on CPU usage.
 ----
 $ kubectl autoscale statefulset hazelcast --cpu-percent=50 --min=3 --max=10
 ----
-This HPA will periodically check Hazelcast StatefulSet CPU usage and will decide number of running pods between 3 and 10, based on some https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details[calculations]. The simplest way to put some cpu load on Hazelcast Pod is executing https://en.wikipedia.org/wiki/Yes_(Unix)[yes tool]. This is just to show how HPA is triggered to scale up Hazelcast Cluster by printing yes in one of Hazelcast Pods. You should use a proper load testing tool to test HPA in your Hazelcast Cluster. Before generating CPU load, you can open 2 new terminals to watch HPA target values and number of hazelcast pods via watch `kubectl get pods` and watch `kubectl get hpa` commands. Let's move on and execute following command for 5-10 seconds and terminate via *Ctrl + C*.
+This HPA will periodically check Hazelcast StatefulSet CPU usage and will decide the number of running pods between 3 and 10, based on some https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details[calculations]. The simplest way to put some cpu load on Hazelcast Pod is to execute https://en.wikipedia.org/wiki/Yes_(Unix)[yes tool]. This is just to show how HPA is triggered to scale up Hazelcast Cluster by printing yes in one of Hazelcast Pods. You should use a proper load testing tool to test HPA in your Hazelcast Cluster. Before generating CPU load, you can open 2 new terminals to watch HPA target values and number of hazelcast pods via watch `kubectl get pods` and watch `kubectl get hpa` commands. Let's move on and execute the following command for 5-10 seconds and terminate via *Ctrl + C*.
 
-You should see now that your HPA target is above 50%, and some new pods are started. As initial hazelcast cluster was 3 members cluster, `hazelcast-3` and above are new pods created by HPA.
+Now that your HPA target is above 50%, you should see some new pods have been created. As the initial Hazelcast cluster was 3 members cluster, `hazelcast-3` and above are the new pods created by HPA.
 
 [source, shell]
 ----
@@ -112,7 +112,7 @@ horizontalpodautoscaler.autoscaling "hazelcast" deleted
 
 == Custom Metrics
 
-In the previous section, we have explained how to use Resource Metrics to autoscale your deployments based on CPU or Memory Metrics. Although that is fine for some architectures, those metrics are Kubernetes Pod or Node level so application level autoscaling is not possible with Resource Metrics. Kubernetes introduced Custom Metrics API in order to fill in this gap. When using Custom Metrics API, each container exposes their own metrics and HPA uses those metrics to make autoscaling decisions. In this example, we will use https://prometheus.io/[Prometheus] as Metrics Storage and https://github.com/DirectXMan12/k8s-prometheus-adapter[Prometheus Adapter] as the Custom Metrics API Provider.
+In the previous section, we have explained how to use Resource Metrics to autoscale your deployments based on CPU or Memory Metrics. Although that is fine for some architectures, those metrics are Kubernetes Pod or Node level so application-level autoscaling is not possible with Resource Metrics. Kubernetes introduced Custom Metrics API in order to fill in this gap. When using Custom Metrics API, each container exposes its own metrics and HPA uses those metrics to make autoscaling decisions. In this example, we will use https://prometheus.io/[Prometheus] as Metrics Storage and https://github.com/DirectXMan12/k8s-prometheus-adapter[Prometheus Adapter] as the Custom Metrics API Provider.
 
 === Install Prometheus and Prometheus Adapter
 
@@ -171,7 +171,7 @@ $ helm install prometheus-adpter prometheus-community/prometheus-adapter --names
 
 === Install Metrics Enabled Hazelcast Cluster
 
-Let's install a new 3 members hazelcast cluster with metrics enabled. Each hazelcast member container in this new deployment will expose their own metrics data under `/metrics` endpoint. This endpoint exposes metrics in Prometheus format because each hazelcast container is started with Prometheus https://github.com/prometheus/jmx_exporter[JMX Exporter]. This is a feature provided by https://github.com/hazelcast/hazelcast-docker[Hazelcast Docker] Image. We also set `resources.limits.memory=512Mi` which sets each hazelcast member JVM max heap size to `128Mi`. JVM by default grabs 25% of available memory as max heap size.
+Let's install a new 3 members Hazelcast cluster with metrics enabled. Each Hazelcast member container in this new deployment will expose their own metrics data under `/metrics` endpoint. This endpoint exposes metrics in Prometheus format because each Hazelcast container is started with Prometheus https://github.com/prometheus/jmx_exporter[JMX Exporter]. This is a feature provided by https://github.com/hazelcast/hazelcast-docker[Hazelcast Docker] Image. We also set `resources.limits.memory=512Mi` which sets each Hazelcast member JVM max heap size to `128Mi`. JVM by default grabs 25% of available memory as max heap size.
 
 [source, shell]
 ----
@@ -283,7 +283,7 @@ Execute following code snippet to put data into Hazelcast Cluster.
 You can use the client application from xref:kubernetes-external-client:ROOT:index.adoc[External Smart Client] guide to connect to Hazelcast cluster.
 ====
 
-When you start putting data into your hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
+When you start putting data into your Hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
 
 [source, shell]
 ----
@@ -304,7 +304,7 @@ hazelcast-mancenter-0   1/1     Running   0          73m
 
 == Conclusion
 
-Autoscaling is an important feature for enterprises to save money and to cope with unexpected traffic coming to your deployments. However, configuring autoscaling needs to be done carefully because you might end up unnecessary scale up/down operations which might cost some instability in your system. In this blog post, we explained how you can use HPA with your Hazelcast Cluster based on Resource Metrics and Custom Metrics. If Kubernetes Pod/Node Level Cpu/Memory usage is fine for you then use Resource Metrics. If you have more specific requirements, and you need to have Hazelcast specific autoscaling capabilities, Custom Metrics is the answer.
+Autoscaling is an important feature for enterprises to save money and to cope with unexpected traffic coming to your deployments. However, configuring autoscaling needs to be done carefully because you might end up unnecessary scale up/down operations which might cost some instability in your system. In this guide, we explained how you can use HPA with your Hazelcast Cluster based on Resource Metrics and Custom Metrics. If Kubernetes Pod/Node Level Cpu/Memory usage is fine for you then use Resource Metrics. If you have more specific requirements, and you need to have Hazelcast specific autoscaling capabilities, Custom Metrics is the answer.
 
 == Software Versions
 
@@ -312,7 +312,7 @@ This is the list of software versions used in this guide.
 
 [source, shell]
 ----
-elm ls --all-namespaces
+$ helm ls --all-namespaces
 NAME             	NAMESPACE 	REVISION	UPDATED                             	STATUS  	CHART                   	APP VERSION
 hazelcast        	default   	1       	2020-11-13 14:53:37.702621 +0200 EET	deployed	hazelcast-3.5.0         	4.1
 prometheus       	monitoring	1       	2020-11-13 14:35:50.630099 +0200 EET	deployed	prometheus-11.16.8      	2.21.0
