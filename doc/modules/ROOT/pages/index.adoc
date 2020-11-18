@@ -124,7 +124,7 @@ namespace/monitoring created
 $ helm install prometheus prometheus-community/prometheus --namespace=monitoring
 ----
 
-Before installing Prometheus Adapter let's take a look at the content of `hazelcast-custom-metrics-hpa.yaml`
+Before installing Prometheus Adapter let's take a look at the content of `prometheus-adapter-values.yaml`
 
 [source, yaml]
 ----
