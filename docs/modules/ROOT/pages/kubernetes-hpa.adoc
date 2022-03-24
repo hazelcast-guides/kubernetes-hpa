@@ -285,7 +285,7 @@ client.shutdown();
 
 [NOTE]
 ====
-You can use the client application from xref:kubernetes-external-client:ROOT:index.adoc[External Smart Client] guide to connect to Hazelcast cluster.
+You can use the client application from the xref:kubernetes-external-client.adoc[External Smart Client] tutorial to connect to the Hazelcast cluster.
 ====
 
 When you start putting data into your Hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
