@@ -1,14 +1,12 @@
-= Kubernetes HPA for Hazelcast Cluster
+= Kubernetes Horizontal Pod Autoscaler for Hazelcast
 :page-layout: tutorial
 :page-product: imdg
-:page-categories: Deployment, Kubernetes
+:page-categories: Deployment, Cloud Native
 :page-lang:
 :page-edition: 
 :page-est-time: 15 mins
 :framework: Kubernetes
-:description: In this tutorial, you will deploy Hazelcast on a Kubernetes cluster and set up Kubernetes Horizontal Pod Autoscaler (HPA), using Resource Metrics and Custom Metrics.
-
-== What You’ll Learn
+:description: Deploy Hazelcast on a Kubernetes cluster and set up Kubernetes Horizontal Pod Autoscaler (HPA), using Resource Metrics and Custom Metrics.
 
 {description}
 
