@@ -1,26 +1,21 @@
-:github-address: https://github.com/hazelcast-guides/kubernetes-hpa
-:templates-url: templates:ROOT:page$/
-:hazelcast: Hazelcast IMDG
+= Kubernetes Horizontal Pod Autoscaler for Hazelcast
+:page-layout: tutorial
+:page-product: imdg
+:page-categories: Deployment, Cloud Native
+:page-lang:
+:page-edition: 
+:page-est-time: 15 mins
 :framework: Kubernetes
+:description: Deploy Hazelcast on a Kubernetes cluster and set up Kubernetes Horizontal Pod Autoscaler (HPA), using Resource Metrics and Custom Metrics.
 
+{description}
 
-= Kubernetes HPA for Hazelcast cluster
+== Before you Begin
 
-This guide will show you how to set up Hazelcast with https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/[Kubernetes Horizontal Pod Autoscaler (HPA)].
-
-include::{templates-url}/link-to-repo.adoc[]
-
-== What You’ll Learn
-
-In this guide you will deploy Hazelcast to Kubernetes cluster and set up HPA using https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#resource-metrics-pipeline[Resource Metrics] and https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/#full-metrics-pipeline[Custom Metrics].
-
-== Prerequisites
-
-* ~15 minutes
 * Kubernetes cluster with kubectl configured
 * https://helm.sh/[Helm 3] tool installed
 
-== Installing Hazelcast Helm Chart
+== Install Hazelcast Helm Chart
 
 Helm is the package manager for Kubernetes, and we will use it throughout the document to install various software. This is the https://github.com/helm/helm#install[link] to install `helm` into your computer. Once you have a working `Helm 3` we can install https://github.com/hazelcast/charts/tree/master/stable/hazelcast[Hazelcast Helm Chart] by running the following commands:
 
@@ -92,7 +87,7 @@ hazelcast-4                             1/1     Running       0          13m
 hazelcast-mancenter-0                   1/1     Running       1          30m
 ----
 
-=== Cleanup
+=== Clean Up
 
 As you successfully managed to use Resource Metrics with Hazelcast, we can clean up resources used up to that point.
 
@@ -288,7 +283,7 @@ client.shutdown();
 
 [NOTE]
 ====
-You can use the client application from xref:kubernetes-external-client:ROOT:index.adoc[External Smart Client] guide to connect to Hazelcast cluster.
+You can use the client application from the xref:kubernetes-external-client.adoc[External Smart Client] tutorial to connect to the Hazelcast cluster.
 ====
 
 When you start putting data into your Hazelcast cluster, you will see that new pods will be created and added to Hazelcast Cluster.
@@ -310,7 +305,7 @@ hazelcast-9             1/1     Running   0          13s
 hazelcast-mancenter-0   1/1     Running   0          73m
 ----
 
-== Conclusion
+== Summary
 
 Autoscaling is an important feature for enterprises to save money and to cope with unexpected traffic coming to your deployments. However, configuring autoscaling needs to be done carefully because you might end up unnecessary scale up/down operations which might cost some instability in your system. In this guide, we explained how you can use HPA with your Hazelcast Cluster based on Resource Metrics and Custom Metrics. If Kubernetes Pod/Node Level Cpu/Memory usage is fine for you then use Resource Metrics. If you have more specific requirements, and you need to have Hazelcast specific autoscaling capabilities, Custom Metrics is the answer.
 
